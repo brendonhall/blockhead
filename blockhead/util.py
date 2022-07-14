@@ -202,3 +202,70 @@ def default_synthetic():
     eps = 0.1
 
     return arma22(T, alpha, beta, norm(1.0), eps=eps)
+
+
+def harmonic_average(series):
+    """ Compute the harmonic average of the series.
+
+    Parameters
+    ----------
+    series: list or array
+        A series of non-zero elements from which the harmonic
+        average is computed.
+
+    Returns
+    -------
+    output: array
+        The harmonic average.
+    """
+    if(np.any(series <= 0)):
+        raise RuntimeError(
+            "The harmonic average only applies to positive numbers.")
+
+    return 1/np.mean(1/series)
+
+
+def slice_by_scale(node, threshold, series, fn=None):
+    """Iterate through the interval tree and apply a some
+    analytic within the top/base of the intervals within
+    a series. Stop iterating at some user supplied threshold.
+
+    The analytic gets applied to the children of the node once
+    the stopping criteria is reached. The analytic then gets applied
+    over a set of not overlapping intervals within the series.
+
+    Parameters
+    ----------
+    node: IntervalNode
+        A node in the interval tree.
+
+    threshold: float
+        The scale at which to stop iterating through the tree.
+
+    series: list or array
+        A series to apply the analytics to.
+
+    fn: function or None
+        This function should take as input a 1-d series, it can
+        return anything. If None, the function will act as the
+        identity and just return the series over the interval.
+
+    Returns
+    -------
+    output: list(tuple(IntervalNode, data))
+        Here the IntervalNode defines the interval and the data
+        is the return value of the supplied function (or the
+        identity).
+    """
+    res = []
+    if node.scale > threshold:
+        for child in node.children:
+            res.extend(slice_by_scale(child, threshold, series, fn=fn))
+    else:
+        slice = series[int(node.top_edge):int(node.bottom_edge)]
+        if(fn is None):
+            return [(node, slice)]
+        else:
+            return [(node, fn(slice))]
+
+    return res
