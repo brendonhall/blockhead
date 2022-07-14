@@ -94,11 +94,16 @@ def populate_interval_tree(contours):
             'data': contour
         })
 
+    contour_list = sorted(
+        contour_list, key=lambda d: d['max_scale'], reverse=True)
+
     #  root is intended to node contains all other contours:
     root_scale = max(max_scales) + 1
     root_location1 = 0
-    root_location2 = max([
-        i + 1 for i in bottom_locations if i is not None])
+    root_location2 = max(
+        max([i + 1 for i in bottom_locations if i is not None]),
+        max([i + 1 for i in top_locations if i is not None])
+    )
 
     root = IntervalNode(
         root_scale, root_location1, root_location2, None)
