@@ -6,12 +6,13 @@ authors = ["Vape Jordan <blasscoc@gmail.com>",
            "Brendon Hall"]
 
 [tool.poetry.dependencies]
+imageio = "^2.19.3"
+lasio = "^0.30"
+matplotlib = "^3.5.1"
+numpy = "^1.23.0"
 python = ">=3.8,<3.11"
 pandas = "^1.4.3"
-numpy = "^1.23.0"
 scipy = "^1.8.1"
-matplotlib = "^3.5.1"
-imageio = "^2.19.3"
 scikit-image = "^0.19.3"
 
 
