@@ -6,7 +6,8 @@ from scipy.stats import norm
 from blockhead.interval_tree import get_parent_interval, IntervalNode
 
 
-def create_scale_space(series, min_scale=3, max_scale=50):
+def create_scale_space(
+        series, min_scale=3, max_scale=50, num_scales=20):
     """ Create a scale space representation of the time series.
 
         Parameters
@@ -18,6 +19,8 @@ def create_scale_space(series, min_scale=3, max_scale=50):
             The min scale in the scale space (in samples).
         max_scale: int
             The max scale in the scale space (in samples).
+        num_scales: int
+            The number of different scales in the scale space.
 
         Returns
         -------
@@ -35,7 +38,10 @@ def create_scale_space(series, min_scale=3, max_scale=50):
 
     max_scale = min(len(series), max_scale)
 
-    scales = np.logspace(0, min_scale, max_scale)
+    scales = np.logspace(np.log(min_scale),
+                         np.log(max_scale),
+                         num_scales,
+                         base=np.e)
 
     second_order = [
         gaussian_filter(series, i, 2, mode='reflect') for i in scales]
@@ -77,9 +83,12 @@ def populate_interval_tree(contours):
         locations = contour[contour[:, 1] == 0.][:, 0]
         if len(locations) == 2:
             [location1, location2] = np.sort(locations)
-        else:
+        elif len(locations) == 1:
             location1 = locations[0]
             location2 = None
+        else:
+            # FIXME - can we ever get here?
+            raise RuntimeError("null contour")
 
         max_scales.append(max_scale)
         top_locations.append(location1)
