@@ -42,13 +42,14 @@ class IntervalNode(object):
                 is_in = True
         return is_in
 
-    def preOrderTraversal(self, node):
-        res = []
-        if node:
-            res.append(node.get_data())
-            for child in node.get_children():
-                res = res + node.preOrderTraversal(child)
-        return res
+
+def preOrderTraversal(node):
+    res = []
+    if node:
+        res.append(node.get_data())
+        for child in node.get_children():
+            res = res + preOrderTraversal(child)
+    return res
 
 
 def get_parent_interval(node, contour):

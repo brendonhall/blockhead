@@ -2,6 +2,8 @@ from matplotlib.patches import Rectangle
 import matplotlib.pyplot as plt
 import numpy as np
 
+from blockhead.interval_tree import preOrderTraversal
+
 
 def default_display(series, scale_space, interval_tree, figsize=(10, 12)):
     """ A default display showing the series with the associated
@@ -45,7 +47,7 @@ def default_display(series, scale_space, interval_tree, figsize=(10, 12)):
         ax[1].plot(
             contour['data'][:, 1], contour['data'][:, 0], linewidth=1, alpha=1)
 
-    rect_list = interval_tree["root"].preOrderTraversal(interval_tree["root"])
+    rect_list = preOrderTraversal(interval_tree["root"])
     for rect in rect_list:
         bottom = rect['bottom']
         top = rect['top']
