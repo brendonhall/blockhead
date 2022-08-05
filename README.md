@@ -1,3 +1,8 @@
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/brendonhall/blockhead)
+[![Code Coverage](https://img.shields.io/codecov/c/github/brendonhall/blockhead)](https://codecov.io/github/brendonhall/blockhead)
+[![Slack](https://badgen.net/badge/icon/slack?icon=slack&label)](https://join.slack.com/invite_code)
+[![Kofi](https://badgen.net/badge/icon/kofi?icon=kofi&label)](https://ko-fi.com/username)
+
 Blockhead is a tool for aligning structure within timeseries.
 
 We're currently supporting the scale space segmentation algorithm of A. Witkin. This algorithm 
