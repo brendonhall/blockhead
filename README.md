@@ -5,7 +5,7 @@
 
 Blockhead is a tool for aligning structure within timeseries.
 
-We're currently supporting the scale space segmentation algorithm of A. Witkin. This algorithm 
+We're currently supporting the scale space segmentation algorithm. This algorithm 
 finds edges in timeseries as a function of scale. It's useful for segmenting timeseries that
 have shocks. As a an applied method, it's used in machine learning applications of well-log 
 data in minerals and oil and gas exploration.
