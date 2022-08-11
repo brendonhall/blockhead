@@ -3,6 +3,9 @@
 [![Slack](https://badgen.net/badge/icon/slack?icon=slack&label)](https://join.slack.com/invite_code)
 [![Kofi](https://badgen.net/badge/icon/kofi?icon=kofi&label)](https://ko-fi.com/vapejordan)
 
+![Alt text](blockhead/blockhead-logo.png?raw=true "Blockhead")
+
+
 Blockhead is a tool for aligning structure within timeseries.
 
 We're currently supporting the scale space segmentation algorithm. This algorithm 
