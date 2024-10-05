@@ -92,7 +92,7 @@ def make_facies_log_plot(logs, facies_colors):
     return f
 
 
-@app.post("/plot-logs/")
+@app.post("/plot-other-log/")
 async def upload_csv(file: UploadFile = File(...)):
     # Read the CSV file
     contents = await file.read()
