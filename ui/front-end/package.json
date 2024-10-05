@@ -1,0 +1,12 @@
+{
+  "name": "my-app",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "npm run build --prefix string-theory",
+    "start": "npm start --prefix string-theory"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "react-scripts": "^4.0.3"
+  }
+}
