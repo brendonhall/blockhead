@@ -12,10 +12,11 @@ const FileUpload = () => {
         const formData = new FormData();
         formData.append('file', file);
 
-        const response = await fetch('/upload', {
+        const response = await fetch('http://127.0.0.1:8000/plot-logs/', { // Correct URL
             method: 'POST',
             body: formData,
-        });
+            mode: 'no-cors'
+        });        
 
         if (response.ok) {
             console.log('File uploaded successfully');
