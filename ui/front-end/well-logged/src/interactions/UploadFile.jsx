@@ -1,36 +1,77 @@
 import React, { useState } from 'react';
 
 const FileUpload = () => {
-    const [file, setFile] = useState(null);
+  const [file, setFile] = useState(null);
+  const [svgContent, setSvgContent] = useState(null);
 
-    const handleFileChange = (event) => {
-        setFile(event.target.files[0]);
-    };
+  const handleFileChange = (event) => {
+    setFile(event.target.files[0]);
+  };
 
-    const handleSubmit = async (event) => {
-        event.preventDefault();
-        const formData = new FormData();
-        formData.append('file', file);
+  const handleUpload = async () => {
+    if (!file) {
+      alert("Please select a file.");
+      return;
+    }
+    const formData = new FormData();
+    formData.append('file', file);
 
-        const response = await fetch('http://127.0.0.1:8000/plot-logs/', { // Correct URL
-            method: 'POST',
-            body: formData,
-            mode: 'no-cors'
-        });        
+    try {
+      const response = await fetch('http://127.0.0.1:8000/plot-logs/', { 
+        method: 'POST',
+        body: formData,
+      });
+      if (response.ok) {
+        const svg = await response.text();
+        setSvgContent(svg);
+      }
+    } catch (error) {
+      console.error('Error uploading the file', error);
+    }
+  };
 
-        if (response.ok) {
-            console.log('File uploaded successfully');
-        } else {
-            console.error('File upload failed');
-        }
-    };
+  const handleOtherPlot = async () => {
+    if (!file) {
+      alert("Please select a file.");
+      return;
+    }
 
-    return (
-        <form onSubmit={handleSubmit}>
-            <input type="file" onChange={handleFileChange} />
-            <button type="submit">Upload</button>
-        </form>
-    );
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await fetch('http://127.0.0.1:8000/plot-other-log/', { 
+        method: 'POST',
+        body: formData,
+      });
+      if (response.ok) {
+        const svg = await response.text();
+        setSvgContent(svg);
+      }
+    } catch (error) {
+      console.error('Error uploading the file', error);
+    }
+  };
+
+  return (
+    <div>
+      <input type="file" onChange={handleFileChange} />
+      <button onClick={handleUpload}>Upload</button>
+      <button onClick={handleOtherPlot}>Other Plot</button>
+
+      {svgContent && (
+        <div 
+          dangerouslySetInnerHTML={{ __html: svgContent }} 
+          style={{ marginTop: '20px', border: '1px solid #ddd', padding: '10px' }}
+        />
+      )}
+    </div>
+  );
 };
 
 export default FileUpload;
+
+
+
+
+
