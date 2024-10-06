@@ -6,8 +6,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from fastapi import FastAPI, File, Response, UploadFile
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 from fastapi.middleware.cors import CORSMiddleware
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+from skimage import measure
+
+from blockhead.util import create_scale_space, default_synthetic, populate_interval_tree
+from blockhead.visual import default_display
 
 app = FastAPI()
 
@@ -30,6 +34,7 @@ facies_colors = [
     "#A569BD",
     "#196F3D",
 ]
+
 
 def make_facies_log_plot(logs, facies_colors):
     # make sure logs are sorted by depth
@@ -92,6 +97,23 @@ def make_facies_log_plot(logs, facies_colors):
     return f
 
 
+def make_scale_space_plot(log_df, column="GR"):
+
+    values = log_df[column]
+
+    values = values[~np.isnan(values)]
+
+    scale_space = create_scale_space(
+        values, min_scale=5, max_scale=2000, num_scales=100
+    )
+
+    contours = measure.find_contours(scale_space["second"], 0)
+    interval_tree = populate_interval_tree(contours)
+
+    fig = default_display(values, scale_space, interval_tree)
+    return fig
+
+
 @app.post("/plot-logs/")
 async def upload_csv(file: UploadFile = File(...)):
     # Read the CSV file
@@ -103,6 +125,27 @@ async def upload_csv(file: UploadFile = File(...)):
     # df.plot(ax=ax)
 
     fig = make_facies_log_plot(df, facies_colors)
+
+    # Save the plot to an SVG
+    svg_io = io.StringIO()
+    plt.savefig(svg_io, format="svg")
+    svg_io.seek(0)
+
+    # Return the SVG image
+    return Response(content=svg_io.getvalue(), media_type="image/svg+xml")
+
+
+@app.post("/scale-space/")
+async def scale_space(file: UploadFile = File(...)):
+    # Read the CSV file
+    contents = await file.read()
+    df = pd.read_csv(io.StringIO(contents.decode("utf-8")))
+
+    # Process the data (example: generate a simple plot)
+    # fig, ax = plt.subplots()
+    # df.plot(ax=ax)
+
+    fig = make_scale_space_plot(df)
 
     # Save the plot to an SVG
     svg_io = io.StringIO()
