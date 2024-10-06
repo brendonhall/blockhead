@@ -92,22 +92,79 @@ def make_facies_log_plot(logs, facies_colors):
     return f
 
 
-@app.post("/plot-logs/")
-async def upload_csv(file: UploadFile = File(...)):
-    # Read the CSV file
-    contents = await file.read()
-    df = pd.read_csv(io.StringIO(contents.decode("utf-8")))
+from fastapi import FastAPI, HTTPException, File, UploadFile, Response
+from pydantic import BaseModel
+from web3 import Web3
+import ipfshttpclient
+import matplotlib.pyplot as plt
+import io
+from PIL import Image
+from fastapi.middleware.cors import CORSMiddleware
+import pandas as pd
+import json
 
-    # Process the data (example: generate a simple plot)
-    # fig, ax = plt.subplots()
-    # df.plot(ax=ax)
+app = FastAPI()
 
-    fig = make_facies_log_plot(df, facies_colors)
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-    # Save the plot to an SVG
-    svg_io = io.StringIO()
-    plt.savefig(svg_io, format="svg")
-    svg_io.seek(0)
+# Model for input data
+class InputData(BaseModel):
+    contractAddress: str
+    ipfsHash: str
+    address: str
 
-    # Return the SVG image
-    return Response(content=svg_io.getvalue(), media_type="image/svg+xml")
+# Route to process inputs and return an image
+@app.post("/process-inputs/")
+async def process_inputs(data: InputData):
+    try:
+        # Connect to IPFS
+        ipfs_client = ipfshttpclient.connect()
+
+        # Connect to Ethereum network via Infura
+        infura_url = "https://sepolia.infura.io/v3/3ec4e3eb7199461bb399f4504ec9ed4e"
+        w3 = Web3(Web3.HTTPProvider(infura_url))
+
+        # Convert contract address to checksum address
+        contract_address = Web3.to_checksum_address(data.contractAddress)
+
+        # Contract ABI
+        abi = json.loads('[{"inputs": [{"internalType": "string", "name": "_ipfsHash", "type": "string"}], "name": "getFileName", "outputs": [{"internalType": "string", "name": "", "type": "string"}], "stateMutability": "view", "type": "function"}]')
+        contract = w3.eth.contract(address=contract_address, abi=abi)
+
+        # Verify that the hash exists in the contract and check authorization
+        try:
+            file_name = contract.functions.getFileName(data.ipfsHash).call({'from': Web3.to_checksum_address(data.address)})
+            if not file_name:
+                raise HTTPException(status_code=404, detail="Hash not found or unauthorized.")
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Error verifying IPFS hash: {str(e)}")
+
+        # Download the file from IPFS
+        try:
+            print(f"Attempting to download the file from IPFS: {data.ipfsHash}")
+            file_data = ipfs_client.cat(data.ipfsHash)
+            print(f"File successfully downloaded from IPFS, length: {len(file_data)} bytes")
+
+            # Open the image using PIL
+            image = Image.open(io.BytesIO(file_data))
+
+            # Convert the image to bytes (PNG format)
+            image_io = io.BytesIO()
+            image.save(image_io, format="PNG")
+            image_io.seek(0)
+
+            # Return the image as a response
+            return Response(content=image_io.getvalue(), media_type="image/png")
+
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error downloading or displaying image: {str(e)}")
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
