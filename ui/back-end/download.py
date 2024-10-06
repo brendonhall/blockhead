@@ -8,6 +8,7 @@ import io
 from PIL import Image
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+import ipfshttpclient  # Import the IPFS HTTP client
 
 app = FastAPI()
 
@@ -25,9 +26,19 @@ class InputData(BaseModel):
     ipfsHash: str
     address: str
 
+# Connect to IPFS
+try:
+    ipfs_client = ipfshttpclient.connect()  # Connect to your local IPFS node
+except Exception as e:
+    print(f"Error connecting to IPFS: {e}")
+    ipfs_client = None
+
 # Example POST route to process input data
 @app.post("/process-inputs/")
 async def process_inputs(data: InputData):
+    if not ipfs_client:
+        raise HTTPException(status_code=500, detail="IPFS client is not connected.")
+
     try:
         # Connect to Ethereum network via Infura
         infura_url = "https://sepolia.infura.io/v3/3ec4e3eb7199461bb399f4504ec9ed4e"
@@ -51,40 +62,20 @@ async def process_inputs(data: InputData):
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"Error verifying IPFS hash: {str(e)}")
 
-        # Download the file from an alternative IPFS gateway and show the image
+        # Download the file from IPFS and show the image
         try:
-            print(f"Attempting to download the file from IPFS: {data.ipfsHash}")
-            # Use an alternative IPFS gateway (dweb.link)
-            gateway_url = f"https://dweb.link/ipfs/{data.ipfsHash}"
-
-            # Extend the timeout to 5 minutes (300 seconds)
-            response = requests.get(gateway_url, timeout=300)
-            print(f"Response status code: {response.status_code}")
-
-            if response.status_code != 200:
-                raise HTTPException(status_code=500, detail=f"Error downloading from IPFS. Status code: {response.status_code}")
-            
-            response.raise_for_status()  # Raise an error for bad HTTP status codes
-            file_data = response.content
-            print(f"File successfully downloaded from IPFS. Length: {len(file_data)} bytes")
-
-            # Process the file as an image
+            file_data = ipfs_client.cat(data.ipfsHash)
             image = Image.open(io.BytesIO(file_data))
             plt.imshow(image)
             plt.axis('off')  # Hide axis
             plt.show()
-
+            print(f"Image displayed successfully.")
             return JSONResponse(content={"message": "Image displayed successfully."}, status_code=200)
 
-        except requests.exceptions.RequestException as e:
-            print(f"Error during HTTP request: {str(e)}")
-            raise HTTPException(status_code=500, detail=f"Error downloading from IPFS gateway: {str(e)}")
         except Exception as e:
-            print(f"Error processing the image: {str(e)}")
-            raise HTTPException(status_code=500, detail=f"Error processing image: {str(e)}")
+            print(f"Error downloading or displaying the image: {e}")
+            raise HTTPException(status_code=500, detail=f"Error downloading or displaying the image from IPFS: {str(e)}")
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
-
-
 
