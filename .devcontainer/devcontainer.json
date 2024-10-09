@@ -1,0 +1,25 @@
+{
+  "name": "Python Dev Environment",
+  "dockerFile": "Dockerfile",
+  "context": "..",
+  "postCreateCommand": "echo 'export PYTHONPATH=$(poetry env info --path)/bin/python' >> ~/.bashrc",
+  "forwardPorts": [8888],  
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "python.terminal.activateEnvInCurrentTerminal": true,
+        "python.defaultInterpreterPath": "/usr/local/bin/python"
+      },
+      "extensions": []
+    }
+  },
+  "updateRemoteUserUID": true,
+  "mounts": [
+    // Mount local project directory for code persistence
+    "source=${localWorkspaceFolder},target=/app,type=bind,consistency=cached",
+
+    // Optionally bind SSH credentials for git access if necessary
+    "source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind,consistency=cached"
+  ]
+}
+

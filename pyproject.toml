@@ -4,17 +4,19 @@ version = "0.1.0"
 description = ""
 authors = ["Vape Jordan <blasscoc@gmail.com>",
            "Brendon Hall"]
+packages = [
+    { include = "blockhead", from = "src" }
+]
 
 [tool.poetry.dependencies]
-imageio = "^2.19.3"
-lasio = "^0.30"
-matplotlib = "^3.5.1"
-numpy = "^1.23.0"
-python = ">=3.8,<3.11"
-pandas = "^1.4.3"
-scipy = "^1.8.1"
-scikit-image = "^0.19.3"
-
+python = ">=3.10,<4.0"
+numpy = "^2.1.2"
+imageio = "^2.35.1"
+lasio = "^0.31"
+matplotlib = "^3.9.2"
+pandas = "^2.2.3"
+scipy = "^1.14.1"
+scikit-image = "^0.23.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
